@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen Transversal · Big Data · Batch + Streaming · 004D</title>
+
+<!-- Fuentes desde CDN (si hay internet); si no, degrada a fuentes del sistema vía font-family fallback. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Chart.js LOCAL: la presentación funciona 100% sin internet. -->
+<script src="lib/chart.umd.min.js"></script>
+
+<style>
+/* ========== RESET & BASE ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --gcp-blue:   #1A73E8;
+  --gcp-blue-2: #4285F4;
+  --gcp-green:  #34A853;
+  --gcp-yellow: #FBBC04;
+  --gcp-red:    #EA4335;
+  --ink:        #202124;
+  --ink-2:      #3C4043;
+  --muted:      #5F6368;
+  --line:       #DADCE0;
+  --bg:         #FFFFFF;
+  --bg-soft:    #F8F9FA;
+  --bg-card:    #FAFBFC;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== DECK ========== */
+.deck { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+
+.slide {
+  position: absolute;
+  inset: 0;
+  padding: 3.2vh 5.5vw 7vh;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease;
+  background: var(--bg);
+  overflow: auto;
+}
+
+.slide.active { opacity: 1; visibility: visible; }
+
+/* ========== TYPOGRAPHY ========== */
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gcp-blue);
+  margin-bottom: 0.7rem;
+}
+
+.title {
+  font-size: clamp(1.5rem, 2.7vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin-bottom: 0.7rem;
+}
+
+.subtitle {
+  font-size: clamp(0.92rem, 1.15vw, 1.1rem);
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+  max-width: 66ch;
+  line-height: 1.45;
+}
+
+.body-text {
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 65ch;
+}
+
+h3 { font-size: 1.05rem; font-weight: 600; color: var(--ink); margin-bottom: 0.5rem; }
+.kicker { font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+
+strong { color: var(--ink); font-weight: 700; }
+em { font-style: normal; color: var(--gcp-blue); font-weight: 600; }
+
+/* ========== COVER ========== */
+.cover { justify-content: center; align-items: flex-start; padding-top: 10vh; }
+
+.cover .badge-meta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(26,115,232,0.08); color: var(--gcp-blue);
+  font-size: 0.8rem; font-weight: 600; margin-bottom: 1.8rem;
+}
+.cover .badge-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gcp-green); }
+
+.cover h1 {
+  font-size: clamp(2.3rem, 5.4vw, 5rem);
+  font-weight: 900; line-height: 0.98; letter-spacing: -0.04em;
+  color: var(--ink); margin-bottom: 1.2rem; max-width: 20ch;
+}
+.cover h1 .accent { color: var(--gcp-blue); }
+
+.cover .lead {
+  font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  color: var(--muted); max-width: 60ch; line-height: 1.55; margin-bottom: 2.6rem;
+}
+
+.cover .meta-row {
+  display: flex; gap: 2.6rem; flex-wrap: wrap;
+  border-top: 1px solid var(--line); padding-top: 1.6rem;
+  font-size: 0.85rem; color: var(--muted);
+}
+.cover .meta-row .label {
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  font-size: 0.7rem; color: var(--muted); margin-bottom: 4px;
+}
+.cover .meta-row .value { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+
+/* ========== CONTENT LAYOUT ========== */
+.slide-header { margin-bottom: 1rem; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; flex: 1; }
+.two-col-3-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 3rem; flex: 1; }
+
+/* ========== STAT CARDS ========== */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem; margin-top: 1.3rem;
+}
+.stat { border-left: 3px solid var(--gcp-blue); padding: 0.4rem 0 0.4rem 1rem; }
+.stat.green  { border-color: var(--gcp-green);  }
+.stat.yellow { border-color: var(--gcp-yellow); }
+.stat.red    { border-color: var(--gcp-red);    }
+.stat .num {
+  display: block; font-size: clamp(1.5rem, 2.4vw, 2.3rem);
+  font-weight: 800; letter-spacing: -0.02em; color: var(--ink); line-height: 1;
+}
+.stat .label { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; font-weight: 500; }
+
+/* ========== PIPELINE / FLOW ========== */
+.flow { display: flex; align-items: stretch; gap: 0.45rem; margin: 1rem 0; flex-wrap: wrap; }
+.flow-step {
+  flex: 1 1 0; min-width: 118px;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.9rem 1rem; display: flex; flex-direction: column; align-items: flex-start;
+}
+.flow-step .step-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+.flow-step .step-name { font-weight: 700; font-size: 0.9rem; color: var(--ink); margin-bottom: 0.2rem; }
+.flow-step .step-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.4; }
+.flow-arrow { display: flex; align-items: center; color: var(--line); font-size: 1.2rem; font-weight: 300; }
+.flow.blue .flow-step { border-color: rgba(26,115,232,0.35); }
+.flow.green .flow-step { border-color: rgba(52,168,83,0.35); }
+
+/* ========== TABLE ========== */
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 0.6rem 0; }
+th {
+  text-align: left; padding: 0.6rem 0.85rem; font-weight: 600; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 2px solid var(--ink);
+}
+td { padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+tr:last-child td { border-bottom: none; }
+td .pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 600; }
+td .pill.yellow { background: #FEF7E0; color: #B36500; }
+td .pill.blue   { background: #E8F0FE; color: #1967D2; }
+td .pill.green  { background: #E6F4EA; color: #137333; }
+td .pill.red    { background: #FCE8E6; color: #C5221F; }
+
+/* ========== CODE ========== */
+pre {
+  background: var(--ink); color: #E8EAED; border-radius: 8px; padding: 1.1rem 1.3rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.55;
+  overflow-x: auto; margin: 0.6rem 0;
+}
+pre code { color: inherit; font-family: inherit; }
+code:not(pre code) {
+  background: var(--bg-soft); padding: 1px 6px; border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: var(--gcp-blue);
+}
+
+/* ========== INSIGHT BOX ========== */
+.insight {
+  margin-top: 1rem; padding: 0.9rem 1.2rem 0.9rem 1rem;
+  border-left: 3px solid var(--gcp-green); background: #F1F8F4; border-radius: 0 8px 8px 0;
+  font-size: 0.9rem; line-height: 1.55; color: var(--ink-2);
+}
+.insight::before {
+  content: "Insight"; display: block; font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--gcp-green); margin-bottom: 0.4rem;
+}
+.insight.blue { border-color: var(--gcp-blue); background: #EEF4FE; }
+.insight.blue::before { content: "Clave"; color: var(--gcp-blue); }
+
+/* ========== CHART ========== */
+.chart-wrap { position: relative; height: 100%; min-height: 280px; width: 100%; }
+
+/* ========== CONCLUSION CARDS ========== */
+.findings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; margin-top: 0.8rem; }
+.finding {
+  display: flex; gap: 1.1rem; align-items: flex-start; padding: 1rem 1.3rem;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px;
+}
+.finding .big { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em; flex-shrink: 0; }
+.finding.b1 .big { color: var(--gcp-red);    }
+.finding.b2 .big { color: var(--gcp-green);  }
+.finding.b3 .big { color: var(--gcp-yellow); }
+.finding.b4 .big { color: var(--gcp-blue);   }
+.finding .ftext { font-size: 0.88rem; line-height: 1.45; color: var(--ink-2); }
+
+/* ========== TEAM ========== */
+.team-row { display: flex; gap: 1.2rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.team-member {
+  display: flex; align-items: center; gap: 0.6rem; padding: 6px 14px;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 999px;
+  font-size: 0.85rem; color: var(--ink-2); font-weight: 500;
+}
+.team-member::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gcp-blue); }
+
+/* ========== FOOTER / NAV ========== */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+  background: rgba(255,255,255,0.97); backdrop-filter: blur(6px); border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 2rem;
+  z-index: 100; font-size: 0.8rem; color: var(--muted);
+}
+.nav-left, .nav-right { display: flex; align-items: center; gap: 1rem; }
+.nav .brand { font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.nav .brand .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gcp-blue); margin-right: 8px; vertical-align: middle; }
+.nav button {
+  background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px;
+  font: inherit; color: var(--ink-2); cursor: pointer; transition: all 0.15s;
+}
+.nav button:hover { border-color: var(--gcp-blue); color: var(--gcp-blue); }
+.nav .counter { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); margin: 0 0.5rem; }
+.nav .shortcut { font-size: 0.75rem; color: var(--muted); }
+.nav .shortcut kbd {
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 3px;
+  padding: 1px 5px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; margin: 0 3px;
+}
+
+/* progress */
+.progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--gcp-blue); z-index: 200; transition: width 0.35s ease; }
+
+/* ========== UTILS ========== */
+.muted { color: var(--muted); }
+.flex-grow { flex: 1; }
+
+/* ========== EVIDENCIAS GALLERY ========== */
+.ev-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  margin-top: 0.3rem;
+}
+.ev-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: zoom-in;
+  background: var(--bg-card);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.ev-item:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.14); transform: translateY(-2px); border-color: var(--gcp-blue); }
+.ev-item img { width: 100%; height: 108px; object-fit: cover; object-position: top left; display: block; background: #0b0f14; }
+.ev-cap { font-size: 0.72rem; color: var(--ink-2); padding: 0.4rem 0.55rem; line-height: 1.3; }
+.ev-cap b { color: var(--gcp-blue); font-weight: 700; margin-right: 5px; }
+
+/* ========== LIGHTBOX ========== */
+.lb {
+  position: fixed; inset: 0;
+  background: rgba(15,17,20,0.9);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 3vh 3vw;
+}
+.lb.open { display: flex; animation: lbIn 0.2s ease; }
+@keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
+.lb img { max-width: 94vw; max-height: 86vh; border-radius: 8px; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
+.lb .lb-cap { position: absolute; bottom: 2.2vh; left: 0; right: 0; text-align: center; color: #fff; font-size: 0.92rem; font-weight: 500; }
+.lb .lb-close {
+  position: absolute; top: 2.2vh; right: 3vw;
+  color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer;
+  background: rgba(255,255,255,0.14); border-radius: 50%;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.lb .lb-close:hover { background: rgba(255,255,255,0.28); }
+.lb .lb-hint { position: absolute; top: 3vh; left: 3vw; color: rgba(255,255,255,0.6); font-size: 0.78rem; }
+
+/* ========== ENTRY ANIMATIONS ========== */
+.slide.active .anim { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.slide.active .anim:nth-child(1) { animation-delay: 0.05s; }
+.slide.active .anim:nth-child(2) { animation-delay: 0.12s; }
+.slide.active .anim:nth-child(3) { animation-delay: 0.18s; }
+.slide.active .anim:nth-child(4) { animation-delay: 0.24s; }
+.slide.active .anim:nth-child(5) { animation-delay: 0.30s; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* responsive */
+@media (max-width: 900px) {
+  .two-col, .two-col-3-2 { grid-template-columns: 1fr; gap: 1.5rem; }
+  .slide { padding: 5vh 6vw 9vh; }
+  .findings-grid { grid-template-columns: 1fr; }
+  .ev-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="deck" id="deck">
+
+<!-- ============================================ -->
+<!-- 1 · COVER -->
+<!-- ============================================ -->
+<section class="slide cover active" data-slide="1">
+  <span class="badge-meta anim">
+    <span class="dot"></span> AVY1101 Big Data · Sección 004D · Examen Final Transversal (40%)
+  </span>
+  <h1 class="anim">
+    Una plataforma Big Data,<br><span class="accent">dos velocidades</span> de datos.
+  </h1>
+  <p class="lead anim">
+    Del histórico masivo al tiempo real. Un pipeline <strong>batch en AWS</strong> que procesa
+    seis años de viajes de taxi de Nueva York, y un pipeline <strong>streaming en GCP</strong>
+    event-driven que monitorea la operación al instante — unificados en un panel en vivo.
+  </p>
+
+  <div class="meta-row anim">
+    <div>
+      <div class="label">Equipo</div>
+      <div class="value">Acuña · Roa · Guzmán · Silva</div>
+    </div>
+    <div>
+      <div class="label">Procesos</div>
+      <div class="value">Batch AWS + Streaming GCP</div>
+    </div>
+    <div>
+      <div class="label">Panel en vivo</div>
+      <div class="value">http://13.222.133.144 (EC2)</div>
+    </div>
+    <div>
+      <div class="label">Docente</div>
+      <div class="value">Jorge Castro</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 2 · CONTEXTO -->
+<!-- ============================================ -->
+<section class="slide" data-slide="2">
+  <div class="slide-header">
+    <div class="eyebrow anim">01 · Contexto</div>
+    <h2 class="title anim">¿Por qué Big Data, y por qué dos pipelines?</h2>
+    <p class="subtitle anim">
+      El transporte urbano genera datos con las tres V: <em>volumen</em> (miles de millones de viajes),
+      <em>velocidad</em> (eventos que llegan segundo a segundo) y <em>variedad</em> (Parquet, JSON, API externas).
+      Ninguna base de datos tradicional resuelve ambos frentes — se necesita una arquitectura Big Data.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="anim">
+      <h3 style="color:#B36500">Frente 1 · Batch histórico</h3>
+      <p class="body-text">
+        Analizar el pasado. Seis años de viajes de taxi de NYC para entender cómo la pandemia
+        reconfiguró de forma permanente el transporte de la ciudad.
+      </p>
+      <table>
+        <tr><td><strong>Pregunta</strong></td><td>¿Qué pasó con el transporte tras el COVID?</td></tr>
+        <tr><td><strong>Naturaleza</strong></td><td>Grandes volúmenes, procesamiento por lotes</td></tr>
+        <tr><td><strong>Fuente</strong></td><td>NYC TLC Trip Record Data (Parquet)</td></tr>
+      </table>
+    </div>
+    <div class="anim">
+      <h3 style="color:var(--gcp-blue)">Frente 2 · Streaming en tiempo real</h3>
+      <p class="body-text">
+        Monitorear el presente. Eventos de viajes que llegan desde una API externa y deben
+        procesarse, almacenarse y visualizarse en segundos.
+      </p>
+      <table>
+        <tr><td><strong>Pregunta</strong></td><td>¿Cómo se comporta la operación ahora mismo?</td></tr>
+        <tr><td><strong>Naturaleza</strong></td><td>Eventos continuos, baja latencia</td></tr>
+        <tr><td><strong>Fuente</strong></td><td>API Duoc → Webhook (JSON)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="insight anim">
+    El mismo dominio de negocio —taxis— exige dos paradigmas complementarios: <strong>batch</strong> para
+    la profundidad analítica del histórico y <strong>streaming</strong> para la reacción inmediata. Nuestra plataforma cubre ambos.
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 10 · EVIDENCIAS -->
+<!-- ============================================ -->
+<section class="slide" data-slide="10">
+  <div class="slide-header">
+    <div class="eyebrow anim">02 · Evidencias</div>
+    <h2 class="title anim">Del recurso al dashboard: 9 evidencias del flujo streaming</h2>
+    <p class="subtitle anim">
+      Capturas reales del desarrollo en Google Cloud. <em>Haz clic en cualquiera para ampliarla.</em>
+    </p>
+  </div>
+
+  <div class="ev-gallery anim">
+    <div class="ev-item" data-full="evidencias/image1.png" data-cap="Figura 1 · Creación de la tabla DatosTR en BigQuery">
+      <img src="evidencias/image1.png" alt="Tabla DatosTR en BigQuery" loading="lazy">
+      <div class="ev-cap"><b>1</b>Tabla DatosTR · BigQuery</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image2.png" data-cap="Figura 2 · Creación del topic y suscripción en Pub/Sub">
+      <img src="evidencias/image2.png" alt="Topic y suscripción Pub/Sub" loading="lazy">
+      <div class="ev-cap"><b>2</b>Topic + suscripción · Pub/Sub</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image3.png" data-cap="Figura 3 · Función Cloud Run para publicar en Pub/Sub">
+      <img src="evidencias/image3.png" alt="Función Cloud Run" loading="lazy">
+      <div class="ev-cap"><b>3</b>Función · Cloud Run</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image4.png" data-cap="Figura 4 · Escenario de Make con Webhook y HTTP">
+      <img src="evidencias/image4.png" alt="Escenario de Make" loading="lazy">
+      <div class="ev-cap"><b>4</b>Escenario · Make (Webhook + HTTP)</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image5.png" data-cap="Figura 5 · Creación y estado inicial del job de Dataflow">
+      <img src="evidencias/image5.png" alt="Job de Dataflow inicial" loading="lazy">
+      <div class="ev-cap"><b>5</b>Job · Dataflow (estado inicial)</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image6.png" data-cap="Figura 6 · Pipeline de Dataflow ejecutándose correctamente">
+      <img src="evidencias/image6.png" alt="Pipeline de Dataflow" loading="lazy">
+      <div class="ev-cap"><b>6</b>Pipeline · Dataflow en ejecución</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image7.png" data-cap="Figura 7 · Validación de datos recibidos en BigQuery">
+      <img src="evidencias/image7.png" alt="Validación en BigQuery" loading="lazy">
+      <div class="ev-cap"><b>7</b>Validación de datos · BigQuery</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image8.png" data-cap="Figura 8 · Vistas y tablas creadas en BigQuery para el dashboard">
+      <img src="evidencias/image8.png" alt="Vistas en BigQuery" loading="lazy">
+      <div class="ev-cap"><b>8</b>Vistas analíticas · BigQuery</div>
+    </div>
+    <div class="ev-item" data-full="evidencias/image9.png" data-cap="Figura 9 · Dashboard final en Looker Studio">
+      <img src="evidencias/image9.png" alt="Dashboard en Looker Studio" loading="lazy">
+      <div class="ev-cap"><b>9</b>Dashboard final · Looker Studio</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 3 · ARQUITECTURA GENERAL -->
+<!-- ============================================ -->
+<section class="slide" data-slide="3">
+  <div class="slide-header">
+    <div class="eyebrow anim">03 · Arquitectura</div>
+    <h2 class="title anim">Arquitectura híbrida: AWS + GCP, un panel común</h2>
+    <p class="subtitle anim">
+      Serverless de extremo a extremo. La rama <em>batch</em> corre en AWS y la rama <em>streaming</em>
+      en GCP; ambas convergen en un panel en vivo hospedado en EC2. Todo administrado, sin clústeres.
+    </p>
+  </div>
+
+  <div class="anim">
+    <div class="kicker" style="margin-bottom:0.4rem; color:#B36500; font-weight:600;">Rama Batch · histórico · AWS</div>
+    <div class="flow green">
+      <div class="flow-step"><span class="step-icon">📥</span><span class="step-name">CDN NYC TLC</span><span class="step-desc">Origen Parquet</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">🪣</span><span class="step-name">Amazon S3</span><span class="step-desc">Data Lake por capas</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">🔎</span><span class="step-name">Amazon Athena</span><span class="step-desc">Consultas SQL</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">📊</span><span class="step-name">Panel EC2</span><span class="step-desc">Visualización</span></div>
+    </div>
+  </div>
+
+  <div class="anim" style="margin-top:1rem">
+    <div class="kicker" style="margin-bottom:0.4rem; color:var(--gcp-blue); font-weight:600;">Rama Streaming · tiempo real</div>
+    <div class="flow blue">
+      <div class="flow-step"><span class="step-icon">🌐</span><span class="step-name">API + Make</span><span class="step-desc">Webhook + HTTP</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">⚡</span><span class="step-name">Cloud Run</span><span class="step-desc">Publica eventos</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">📨</span><span class="step-name">Pub/Sub</span><span class="step-desc">Cola desacoplada</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">🔀</span><span class="step-name">Dataflow</span><span class="step-desc">Procesa stream</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="step-icon">🔎</span><span class="step-name">BigQuery</span><span class="step-desc">Modelo analítico</span></div>
+    </div>
+  </div>
+
+  <div class="anim" style="margin-top:1rem;">
+    <div class="kicker" style="margin-bottom:0.4rem; font-weight:600; color:var(--ink);">Análisis de la arquitectura — 4 aspectos y su beneficio (IL 1.4)</div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.7rem;">
+      <div class="flow-step" style="min-width:0;"><span class="step-name">Escalabilidad</span><span class="step-desc">Serverless: absorbe 1.496 M registros sin aprovisionar clústeres.</span></div>
+      <div class="flow-step" style="min-width:0;"><span class="step-name">Calidad de datos</span><span class="step-desc">Validación, deduplicación y esquema tipado en cada capa.</span></div>
+      <div class="flow-step" style="min-width:0;"><span class="step-name">Optimización / costo</span><span class="step-desc">Pay-per-query: batch &lt; 5 USD y free tier de BigQuery.</span></div>
+      <div class="flow-step" style="min-width:0;"><span class="step-name">Seguridad</span><span class="step-desc">IAM con roles mínimos; Pub/Sub desacopla y aísla componentes.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 4 · HERRAMIENTAS -->
+<!-- ============================================ -->
+<section class="slide" data-slide="4">
+  <div class="slide-header">
+    <div class="eyebrow anim">04 · Herramientas</div>
+    <h2 class="title anim">El stack: AWS para batch, GCP para streaming</h2>
+    <p class="subtitle anim">
+      Multicloud por diseño. Cada nube aporta lo que mejor resuelve: AWS para el análisis
+      masivo del histórico, GCP para la ingesta de eventos en tiempo real.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="anim">
+      <h3 style="color:#B36500">Proceso Batch · AWS</h3>
+      <table>
+        <thead><tr><th>Servicio</th><th>Rol en la solución</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Amazon S3</strong></td><td>Data Lake raw → curated</td></tr>
+          <tr><td><strong>Amazon Athena</strong></td><td>Consultas SQL serverless</td></tr>
+          <tr><td><strong>IAM</strong></td><td>Permisos y roles</td></tr>
+          <tr><td><strong>AWS CLI</strong></td><td>Ingesta automatizada</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:1rem">Soluciones evaluadas (IL 1.2)</h3>
+      <table>
+        <thead><tr><th>On-premise</th><th>Equivale en cloud</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Hadoop</strong> (HDFS)</td><td>S3 / Cloud Storage</td></tr>
+          <tr><td><strong>Apache Spark</strong></td><td>Dataflow / Dataprep</td></tr>
+          <tr><td><strong>Cassandra / HBase</strong></td><td>BigQuery</td></tr>
+          <tr><td><strong>MongoDB</strong></td><td>Firestore</td></tr>
+        </tbody>
+      </table>
+      <p class="kicker" style="margin-top:0.4rem;">Cloud elegida: <strong>AWS + GCP</strong> — escalabilidad elástica y pago por uso frente al costo de clústeres on-premise.</p>
+    </div>
+    <div class="anim">
+      <h3 style="color:var(--gcp-blue)">Proceso Streaming · GCP</h3>
+      <table>
+        <thead><tr><th>Servicio</th><th>Rol en la solución</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Make + Cloud Run</strong></td><td>Ingesta de eventos desde la API</td></tr>
+          <tr><td><strong>Pub/Sub</strong></td><td>Cola, desacople productor-consumidor</td></tr>
+          <tr><td><strong>Dataflow</strong></td><td>Procesamiento streaming (Apache Beam)</td></tr>
+          <tr><td><strong>BigQuery</strong></td><td>Data Warehouse + vistas analíticas</td></tr>
+          <tr><td><strong>Looker Studio</strong></td><td>Panel de control interactivo</td></tr>
+        </tbody>
+      </table>
+      <div class="insight blue" style="margin-top:0.8rem">
+        Elegimos <em>cloud serverless</em> por escalabilidad elástica, pago por uso
+        (free tier de 1 TB/mes en BigQuery, batch AWS &lt; 5 USD) y cero administración de infraestructura.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 5 · PROCESO BATCH -->
+<!-- ============================================ -->
+<section class="slide" data-slide="5">
+  <div class="slide-header">
+    <div class="eyebrow anim">05 · Proceso Batch (AWS)</div>
+    <h2 class="title anim">1.496 M registros y el quiebre estructural del COVID</h2>
+    <p class="subtitle anim">
+      Ingesta masiva desde el CDN oficial hacia el Data Lake en S3, seis transformaciones en capas
+      Bronze → Silver → Gold, y consulta con Athena. <em>El histórico revela el hallazgo clave.</em>
+    </p>
+  </div>
+
+  <div class="two-col-3-2">
+    <div class="anim" style="position:relative; height:44vh; min-height:230px; width:100%;">
+      <canvas id="chartCovid"></canvas>
+    </div>
+    <div class="anim">
+      <table>
+        <thead><tr><th>Dataset</th><th>Archivos</th><th>Registros</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill yellow">Yellow</span></td><td>72</td><td>259 M</td></tr>
+          <tr><td><span class="pill blue">HVFHV</span></td><td>71</td><td>1.237 M</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>143 · 33 GB</strong></td><td><strong>1.496 M</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="kicker" style="margin:0.55rem 0 0.25rem;"><strong>Formatos (IL 2.1):</strong> Parquet · CSV · JSON &nbsp;·&nbsp; <strong>Fuentes:</strong> Yellow + HVFHV</p>
+      <p class="kicker" style="margin-bottom:0.4rem;"><strong>6 transformaciones (IL 2.3):</strong> normalización · limpieza · enriquecimiento · agregación · validación · deduplicación</p>
+      <div class="insight">
+        Yellow cayó <strong>71%</strong> en 2020 y sigue al <em>49%</em> (2024); HVFHV ya superó su 2019 (<em>102%</em>).
+        Caída <strong>estructural, no cíclica</strong> — todo por <strong>&lt; 5 USD</strong> (Athena pay-per-query).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 6 · PROCESO STREAMING -->
+<!-- ============================================ -->
+<section class="slide" data-slide="7">
+  <div class="slide-header">
+    <div class="eyebrow anim">06 · Proceso Streaming</div>
+    <h2 class="title anim">Pipeline event-driven de extremo a extremo</h2>
+    <p class="subtitle anim">
+      Cada evento de viaje viaja desde la API hasta BigQuery sin acoplar componentes.
+      Pub/Sub actúa como amortiguador y Dataflow procesa en continuo.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="anim">
+      <h3>Cloud Run — publicador a Pub/Sub</h3>
+<pre><code>def main(request):
+    data = request.get_json()
+    if not data:
+        return "Sin contenido", 400
+    publisher.publish(
+        topic_path,          # topic "registros"
+        json.dumps(data).encode("utf-8")
+    )
+    return "Completado", 200</code></pre>
+      <div class="insight blue" style="margin-top:0.7rem">
+        Make transforma el body con <em>campos dinámicos</em> del Webhook, de modo que cada
+        registro llega con valores reales y variados (cliente, producto, monto, método de pago).
+      </div>
+    </div>
+    <div class="anim">
+      <h3>Transformaciones en el stream</h3>
+      <table>
+        <tr><td><strong>Normalización</strong></td><td>JSON → esquema DatosTR</td></tr>
+        <tr><td><strong>Validación</strong></td><td>Tipos: STRING/FLOAT/INT/TIMESTAMP</td></tr>
+        <tr><td><strong>Enriquecimiento</strong></td><td>hora del viaje derivada de fecreg</td></tr>
+        <tr><td><strong>Reinterpretación</strong></td><td>vistas SQL → dominio "viajes de taxi"</td></tr>
+      </table>
+      <h3 style="margin-top:1rem">Modelo en BigQuery</h3>
+      <table>
+        <tr><td><code>DatosTR</code></td><td>Tabla cruda del stream</td></tr>
+        <tr><td><code>stg_viajes_taxi_streaming</code></td><td>Staging renombrado</td></tr>
+        <tr><td><code>fact_viajes_taxi_streaming_vw</code></td><td>Vista final del dashboard</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 8 · GOBIERNO DE DATOS / CONTROL DE ERRORES -->
+<!-- ============================================ -->
+<section class="slide" data-slide="8">
+  <div class="slide-header">
+    <div class="eyebrow anim">07 · Gobierno de datos</div>
+    <h2 class="title anim">Control de errores, duplicidad y trazabilidad</h2>
+    <p class="subtitle anim">
+      Todo proceso tiene puntos de fallo. Documentamos los controles del anexo exigido por la rúbrica
+      y los errores reales resueltos durante el desarrollo.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="anim">
+      <h3>Prácticas de gobierno (IL 1.3)</h3>
+      <table>
+        <tr><td><strong>1 · Calidad del dato</strong></td><td>Validación, deduplicación y esquema tipado en cada capa</td></tr>
+        <tr><td><strong>2 · Seguridad y privacidad</strong></td><td>IAM con roles mínimos; datos aislados vía Pub/Sub</td></tr>
+      </table>
+      <h3 style="margin-top:0.8rem">Ciclo de vida del dato — 4 fases</h3>
+      <table>
+        <tr><td><strong>Creación / Captura</strong></td><td>API→Webhook · CDN→S3</td></tr>
+        <tr><td><strong>Almacenamiento</strong></td><td>Data Lake S3 + BigQuery</td></tr>
+        <tr><td><strong>Archivado</strong></td><td>Capas raw → curated (lifecycle)</td></tr>
+        <tr><td><strong>Eliminación</strong></td><td>Política de retención / borrado</td></tr>
+      </table>
+    </div>
+    <div class="anim">
+      <h3>Control de errores, duplicidad y trazabilidad (anexo)</h3>
+      <table>
+        <tr><td><strong>Errores</strong></td><td>Payload validado en Cloud Run (400 si vacío); logs de Dataflow</td></tr>
+        <tr><td><strong>Duplicidad</strong></td><td><code>ROW_NUMBER()</code> idempotente · clave de evento</td></tr>
+        <tr><td><strong>Trazabilidad</strong></td><td>Origen → vista final, auditada</td></tr>
+      </table>
+      <h3 style="margin-top:0.7rem">Métricas de calidad</h3>
+      <table>
+        <tr><td>Registros leídos → cargados</td><td>1.496 M → ~1.470 M</td></tr>
+        <tr><td>Descartados (nulos / rangos inválidos)</td><td>≈ 1–2%</td></tr>
+      </table>
+      <div class="insight" style="margin-top:0.5rem">
+        <strong>13 incidentes</strong> resueltos (ZONE_RESOURCE, Project ID, permisos IAM, entry point, datos fijos…).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 9 · PANEL DE CONTROL STREAMING -->
+<!-- ============================================ -->
+<section class="slide" data-slide="9">
+  <div class="slide-header">
+    <div class="eyebrow anim">08 · Panel de control</div>
+    <h2 class="title anim">¿Cómo se comporta la operación en tiempo real?</h2>
+    <p class="subtitle anim">Dashboard en Looker Studio (vista final de BigQuery) y panel en vivo en <em>http://13.222.133.144</em>, que se actualiza cada 3 s</p>
+  </div>
+
+  <div class="stat-grid anim">
+    <div class="stat"><span class="num">154</span><span class="label">Viajes registrados</span></div>
+    <div class="stat green"><span class="num">7.210</span><span class="label">Pasajeros</span></div>
+    <div class="stat yellow"><span class="num">$1,54 M</span><span class="label">Ingresos totales</span></div>
+    <div class="stat red"><span class="num">$10.029</span><span class="label">Ingreso promedio</span></div>
+  </div>
+
+  <div class="anim" style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1.1rem;">
+    <div>
+      <h3>Distribución de métodos de pago</h3>
+      <div style="position:relative; height:30vh; min-height:180px; max-height:260px; width:100%;">
+        <canvas id="chartPago"></canvas>
+      </div>
+    </div>
+    <div>
+      <h3>Viajes registrados por hora</h3>
+      <div style="position:relative; height:30vh; min-height:180px; max-height:260px; width:100%;">
+        <canvas id="chartHora"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight anim" style="margin-top:0.9rem">
+    Actividad concentrada en las horas <strong>20–21</strong>; <em>Efectivo</em> lidera con 37,6%
+    de los pagos y el mayor ingreso acumulado.
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 11 · REPOSITORIO + CONCLUSIÓN -->
+<!-- ============================================ -->
+<section class="slide" data-slide="11">
+  <div class="slide-header">
+    <div class="eyebrow anim">09 · Cierre</div>
+    <h2 class="title anim">Estructura del repositorio y conclusión</h2>
+    <p class="subtitle anim">
+      Una sola plataforma Big Data que resuelve el histórico y el tiempo real, con evidencias trazables.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="anim">
+      <h3>Estructura del repositorio final</h3>
+<pre><code>Examen_transversal/
+├── batch/            Pipeline NYC Taxi (AWS)
+│   ├── ingesta.sh    143 Parquet → S3
+│   └── athena.sql    Consultas + vistas
+├── streaming/        Pipeline tiempo real (GCP)
+│   ├── cloud_run/    main.py (publisher)
+│   ├── make/         Escenario Webhook+HTTP
+│   └── vistas_sql/   stg_ / fact_ views
+├── panel_ec2/        Astro SSR + Nginx (live)
+├── dashboards/       Looker Studio
+└── anexo_evidencias/ Capturas + errores</code></pre>
+    </div>
+    <div class="anim">
+      <div class="findings-grid">
+        <div class="finding b1"><div class="big">2</div><div class="ftext">Paradigmas cubiertos: <strong>batch</strong> y <strong>streaming</strong> sobre una misma plataforma.</div></div>
+        <div class="finding b2"><div class="big">100%</div><div class="ftext">Pipeline funcional de extremo a extremo, datos llegando y visualizados.</div></div>
+        <div class="finding b3"><div class="big">13</div><div class="ftext">Incidentes resueltos con control de errores y trazabilidad.</div></div>
+        <div class="finding b4"><div class="big">&lt;$5</div><div class="ftext">Costo del pipeline batch AWS para <strong>1.496 M</strong> de registros.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-row anim" style="margin-top:1.2rem">
+    <div class="team-member">Javiera Acuña</div>
+    <div class="team-member">Victoria Roa</div>
+    <div class="team-member">Eduardo Guzmán</div>
+    <div class="team-member">Fernando Silva</div>
+  </div>
+</section>
+
+</div>
+
+<!-- ====== LIGHTBOX ====== -->
+<div class="lb" id="lb">
+  <span class="lb-hint">Clic fuera o Esc para cerrar</span>
+  <div class="lb-close" id="lbClose">×</div>
+  <img id="lbImg" alt="Evidencia ampliada">
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+
+<!-- ====== NAV ====== -->
+<div class="nav">
+  <div class="nav-left">
+    <span class="brand"><span class="dot"></span> Examen Transversal · Big Data · 004D</span>
+  </div>
+  <div class="nav-right">
+    <button id="btnPrev" title="Slide anterior">← Anterior</button>
+    <span class="counter"><span id="curSlide">1</span> / <span id="totSlide">10</span></span>
+    <button id="btnNext" title="Slide siguiente">Siguiente →</button>
+    <span class="shortcut"><kbd>F</kbd> fullscreen · <kbd>←</kbd> <kbd>→</kbd> navegar</span>
+  </div>
+</div>
+
+<script>
+// ============== DECK CONTROLLER ==============
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let current = 0;
+
+const curSpan  = document.getElementById('curSlide');
+const totSpan  = document.getElementById('totSlide');
+const progress = document.getElementById('progress');
+
+totSpan.textContent = total;
+
+function go(idx) {
+  if (idx < 0 || idx >= total) return;
+  slides[current].classList.remove('active');
+  current = idx;
+  slides[current].classList.add('active');
+  curSpan.textContent = current + 1;
+  progress.style.width = ((current + 1) / total * 100) + '%';
+  if (location.hash !== '#' + (current + 1)) {
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+  triggerChart(current);
+}
+
+document.getElementById('btnNext').onclick = () => go(current + 1);
+document.getElementById('btnPrev').onclick = () => go(current - 1);
+
+document.addEventListener('keydown', e => {
+  const lbEl = document.getElementById('lb');
+  if (lbEl && lbEl.classList.contains('open')) {
+    if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); lbEl.classList.remove('open'); document.getElementById('lbImg').src=''; }
+    return;
+  }
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+  else if (e.key === 'Home') go(0);
+  else if (e.key === 'End') go(total - 1);
+  else if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+// Set initial slide WITHOUT triggering charts (built/chart fns are defined below).
+const hashSlide = parseInt(location.hash.replace('#','')) - 1;
+const startIdx = (!isNaN(hashSlide) && hashSlide >= 0 && hashSlide < total) ? hashSlide : 0;
+slides[current].classList.remove('active');
+current = startIdx;
+slides[current].classList.add('active');
+curSpan.textContent = current + 1;
+progress.style.width = ((current + 1) / total * 100) + '%';
+
+// ============== CHARTS ==============
+Chart.defaults.color = '#5F6368';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.borderColor = '#DADCE0';
+
+const C_YELLOW = '#FBBC04';
+const C_BLUE   = '#1A73E8';
+const C_GREEN  = '#34A853';
+const C_RED    = '#EA4335';
+const C_INK    = '#202124';
+
+const built = new Set();
+
+function chartCovid() {
+  if (built.has('covid')) return; built.add('covid');
+  new Chart(document.getElementById('chartCovid'), {
+    type: 'line',
+    data: {
+      labels: ['2019','2020','2021','2022','2023','2024'],
+      datasets: [
+        { label: 'Yellow Taxi', data: [84.6,24.6,30.9,39.7,38.3,41.2],
+          borderColor: C_YELLOW, backgroundColor: 'rgba(251,188,4,0.10)',
+          borderWidth: 3, tension: 0.35, pointRadius: 5, pointBackgroundColor: C_YELLOW, fill: true },
+        { label: 'HVFHV (Uber/Lyft)', data: [234.6,143.3,174.6,212.4,232.5,239.5],
+          borderColor: C_BLUE, backgroundColor: 'rgba(26,115,232,0.10)',
+          borderWidth: 3, tension: 0.35, pointRadius: 5, pointBackgroundColor: C_BLUE, fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { weight: '500', size: 12 }, padding: 14, usePointStyle: true } },
+        tooltip: { backgroundColor: '#FFFFFF', titleColor: C_INK, bodyColor: '#3C4043', borderColor: '#DADCE0', borderWidth: 1, padding: 12,
+                   callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y + ' M' } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'Millones de viajes', color: '#5F6368', font: { size: 11 } }, grid: { color: '#F1F3F4' }, beginAtZero: true },
+        x: { grid: { display: false } }
+      },
+      animation: { duration: 1100, easing: 'easeOutCubic' }
+    }
+  });
+}
+
+function chartPago() {
+  if (built.has('pago')) return; built.add('pago');
+  new Chart(document.getElementById('chartPago'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Efectivo','Débito','Crédito'],
+      datasets: [{ data: [37.6,33.1,29.3], backgroundColor: [C_GREEN, C_BLUE, C_YELLOW], borderColor: '#FFFFFF', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '58%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { weight: '500' }, padding: 14, usePointStyle: true } },
+        tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + '%' } }
+      },
+      animation: { duration: 1000, easing: 'easeOutCubic' }
+    }
+  });
+}
+
+function chartHora() {
+  if (built.has('hora')) return; built.add('hora');
+  new Chart(document.getElementById('chartHora'), {
+    type: 'bar',
+    data: {
+      labels: ['20 h','21 h'],
+      datasets: [{ label: 'Viajes', data: [68,86], backgroundColor: [C_BLUE, C_YELLOW], borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.parsed.y + ' viajes' } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'Viajes', color: '#5F6368', font: { size: 11 } }, grid: { color: '#F1F3F4' }, beginAtZero: true },
+        x: { grid: { display: false } }
+      },
+      animation: { duration: 900, easing: 'easeOutCubic' }
+    }
+  });
+}
+
+function triggerChart(idx) {
+  const s = slides[idx];
+  if (!s) return;
+  if (s.querySelector('#chartCovid')) chartCovid();
+  if (s.querySelector('#chartPago')) { chartPago(); chartHora(); }
+}
+
+// ============== LIGHTBOX ==============
+const lb = document.getElementById('lb');
+const lbImg = document.getElementById('lbImg');
+const lbCap = document.getElementById('lbCap');
+
+function openLb(src, cap) {
+  lbImg.src = src;
+  lbCap.textContent = cap || '';
+  lb.classList.add('open');
+}
+function closeLb() {
+  lb.classList.remove('open');
+  lbImg.src = '';
+}
+
+document.querySelectorAll('[data-full]').forEach(el => {
+  el.addEventListener('click', () => openLb(el.dataset.full, el.dataset.cap));
+});
+document.getElementById('lbClose').addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+
+requestAnimationFrame(() => triggerChart(current));
+</script>
+</body>
+</html>
