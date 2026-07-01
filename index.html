@@ -334,6 +334,22 @@ code:not(pre code) {
   .slide { padding: 5vh 6vw 9vh; }
   .findings-grid { grid-template-columns: 1fr; }
   .ev-gallery { grid-template-columns: repeat(2, 1fr); }
+  .mgrid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* Teléfonos: apila todo para que no se amontone */
+@media (max-width: 640px) {
+  .slide { padding: 3vh 5vw 9vh; overflow-y: auto; }
+  .cover { padding-top: 6vh; }
+  .cover .meta-row { gap: 1.1rem; }
+  .flow { flex-direction: column; gap: 0.45rem; }
+  .flow-step { width: 100%; min-width: 0; }
+  .flow-arrow { transform: rotate(90deg); align-self: center; }
+  .mgrid-2, .mgrid-4 { grid-template-columns: 1fr !important; }
+  .ev-gallery { grid-template-columns: 1fr 1fr; }
+  .ev-item img { height: 92px; }
+  table { font-size: 0.82rem; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -521,7 +537,7 @@ code:not(pre code) {
 
   <div class="anim" style="margin-top:1rem;">
     <div class="kicker" style="margin-bottom:0.4rem; font-weight:600; color:var(--ink);">Análisis de la arquitectura — 4 aspectos y su beneficio (IL 1.4)</div>
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.7rem;">
+    <div class="mgrid-4" style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.7rem;">
       <div class="flow-step" style="min-width:0;"><span class="step-name">Escalabilidad</span><span class="step-desc">Serverless: absorbe 1.496 M registros sin aprovisionar clústeres.</span></div>
       <div class="flow-step" style="min-width:0;"><span class="step-name">Calidad de datos</span><span class="step-desc">Validación, deduplicación y esquema tipado en cada capa.</span></div>
       <div class="flow-step" style="min-width:0;"><span class="step-name">Optimización / costo</span><span class="step-desc">Pay-per-query: batch &lt; 5 USD y free tier de BigQuery.</span></div>
@@ -638,16 +654,17 @@ code:not(pre code) {
 
   <div class="two-col">
     <div class="anim">
-      <h3>Cloud Run — publicador a Pub/Sub</h3>
-<pre><code>def main(request):
-    data = request.get_json()
-    if not data:
-        return "Sin contenido", 400
-    publisher.publish(
-        topic_path,          # topic "registros"
-        json.dumps(data).encode("utf-8")
-    )
-    return "Completado", 200</code></pre>
+      <h3>Ingesta del evento — capturas del proceso</h3>
+      <div class="mgrid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:0.7rem;">
+        <div class="ev-item" data-full="evidencias/image4.png" data-cap="Figura 4 · Escenario de Make: Webhook recibe la API y HTTP reenvía a Cloud Run">
+          <img src="evidencias/image4.png" alt="Escenario de Make" loading="lazy">
+          <div class="ev-cap"><b>1</b>Make · Webhook + HTTP</div>
+        </div>
+        <div class="ev-item" data-full="evidencias/image3.png" data-cap="Figura 3 · Función Cloud Run que valida el JSON y publica en Pub/Sub">
+          <img src="evidencias/image3.png" alt="Función Cloud Run" loading="lazy">
+          <div class="ev-cap"><b>2</b>Cloud Run · publica a Pub/Sub</div>
+        </div>
+      </div>
       <div class="insight blue" style="margin-top:0.7rem">
         Make transforma el body con <em>campos dinámicos</em> del Webhook, de modo que cada
         registro llega con valores reales y variados (cliente, producto, monto, método de pago).
@@ -738,7 +755,7 @@ code:not(pre code) {
     <div class="stat red"><span class="num">$10.029</span><span class="label">Ingreso promedio</span></div>
   </div>
 
-  <div class="anim" style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1.1rem;">
+  <div class="anim mgrid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1.1rem;">
     <div>
       <h3>Distribución de métodos de pago</h3>
       <div style="position:relative; height:30vh; min-height:180px; max-height:260px; width:100%;">
