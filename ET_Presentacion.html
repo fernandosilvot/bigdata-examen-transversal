@@ -306,6 +306,19 @@ code:not(pre code) {
 .lb .lb-close:hover { background: rgba(255,255,255,0.28); }
 .lb .lb-hint { position: absolute; top: 3vh; left: 3vw; color: rgba(255,255,255,0.6); font-size: 0.78rem; }
 
+/* ========== QR BUTTON ========== */
+.qr-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: 8px;
+  background: var(--gcp-blue); color: #fff;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; border: none; margin: 0.2rem 0 0.4rem;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.25);
+  transition: background 0.15s, transform 0.15s;
+}
+.qr-btn:hover { background: #1666d6; transform: translateY(-1px); }
+.qr-btn .qr-ic { font-size: 1.1rem; }
+
 /* ========== ENTRY ANIMATIONS ========== */
 .slide.active .anim { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 .slide.active .anim:nth-child(1) { animation-delay: 0.05s; }
@@ -713,6 +726,9 @@ code:not(pre code) {
     <div class="eyebrow anim">08 · Panel de control</div>
     <h2 class="title anim">¿Cómo se comporta la operación en tiempo real?</h2>
     <p class="subtitle anim">Dashboard en Looker Studio (vista final de BigQuery) y panel en vivo en <em>http://13.222.133.144</em>, que se actualiza cada 3 s</p>
+    <button class="qr-btn anim" data-full="qr-panel.png" data-cap="Escanea para abrir el panel en vivo · http://13.222.133.144">
+      <span class="qr-ic">📱</span> Ver QR del panel en vivo
+    </button>
   </div>
 
   <div class="stat-grid anim">
